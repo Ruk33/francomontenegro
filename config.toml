@@ -1,0 +1,5 @@
+baseURL = "https://www.francomontenegro.com.ar"
+languageCode = "en-us"
+title = "Franco Montenegro"
+theme = "base16"
+copyright = "Franco Montenegro"
