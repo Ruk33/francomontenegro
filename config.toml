@@ -3,3 +3,6 @@ languageCode = "en-us"
 title = "Franco Montenegro"
 theme = "base16"
 copyright = "Franco Montenegro"
+pygmentsCodeFences = true
+pygmentsUseClasses = true
+useHLJS = true
