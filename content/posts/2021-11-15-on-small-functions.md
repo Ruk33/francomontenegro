@@ -1,7 +1,6 @@
 ---
 title: "On Small Functions"
 date: 2021-11-15T16:10:01-03:00
-draft: true
 ---
 
 ## Small functions, really that useful?
