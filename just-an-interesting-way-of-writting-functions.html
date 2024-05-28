@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Franco Montenegro</title>
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css">
+    <link rel="stylesheet" href="https://unpkg.com/magick.css">
+</head>
+<body>
+<main>
+
+<header><a href="/">Back</a></header>
+
+<section>
+<h2>Just an interesting way of writing functions</h2>
+
+<p>A few days ago I found a few interesting <a href="https://youtu.be/wXaC0YvDgIo?si=gw63jwLYcSLmrj6x">videos</a> on how to write good software.</p>
+
+<p>What immediately caught my eye, is how the functions/method were written. It
+appears like they only have 1 line per function which at first, one could think
+that it's a bit extremist but, at the same time, it kinda looks clean and very
+easy to follow, right?</p>
+
+<p>Also, the code looked quite expressive and clear. And so, I thought, what if
+each line of code was so descriptive that there is no need to actually dig
+deeper into what the function call/action does.</p>
+
+<p>What if we just jump right into code?</p>
+<pre>
+<code>
+void *arena_memory(int size)
+{
+    return calloc(1, size);
+}
+
+void *arena_get(void *arena, int how_much)
+{
+    // first int in arena stores how much of the data has been used.
+    int bytes_used = *((int *) arena);
+    void *result = (char *) arena + sizeof(int) + bytes_used;
+    // update used memory.
+    *((int *) arena) = bytes_used + how_much;
+    return result;
+}
+
+void arena_clean(void *arena)
+{
+    *((int *) arena) = 0;
+}
+</code>
+</pre>
+
+<p>Ok, so what do we have in here. It's a simple stack/arena/bump whatever you
+wanna call it allocator. It's simply a huge chunk of memory that we use by 
+incrementing a counter that we conveniently store at the beginning of the buffer.</p>
+
+<p>Depending on how experienced you are in C, you can more or less easily tell 
+what the code does. The thing about it is that, even with good knowledge/experience,
+you have to read and double check what the code does and then you realize, oh, 
+got it.</p>
+
+<p>What if we put in practice what I previously mentioned, what if each line
+of code was so descriptive that we don't have the need to dig deeper.</p>
+
+<p>What do you think of the following code?</p>
+<pre>
+<code>
+void *arena_memory(int size)
+{
+    return requested_memory;
+}
+
+void *arena_get(void *arena, int how_much)
+{
+    void *result = get_memory;
+
+    update_usage;
+
+    return result;
+}
+
+void arena_clean(void *arena)
+{
+    reset;
+}
+</code>
+</pre>
+
+<p>Yes, this is accomplished thanks to macros. But noticed how you don't
+really need to know what's going on under the hood to understand what we
+are doing.</p>
+
+<p>Let's explore the full code now:</p>
+<pre>
+<code>
+void *arena_memory(int size)
+{
+    #define requested_memory calloc(1, size)
+
+    return requested_memory;
+}
+
+void *arena_get(void *arena, int how_much)
+{
+    #define bytes_used   *((int *) arena)
+    #define get_memory   (char *) arena + sizeof(int) + bytes_used
+    #define update_usage *((int *) arena) = bytes_used + how_much
+
+    void *result = get_memory;
+
+    update_usage;
+
+    return result;
+}
+
+void arena_clean(void *arena)
+{
+    #define reset *((int *) arena) = 0
+
+    reset;
+}
+</code>
+</pre>
+
+<p>Pretty cool right? Not only is the code quite descriptive, we also have
+the details of what's under the hood right there in case we need it.</p>
+
+<p>We can go one step deeper and enclose the macros with a `{}` so we can
+collapse that part of the code and just focus on the actions (not the details)
+of the function that we are reading.</p>
+
+<pre>
+<code>
+void *arena_get(void *arena, int how_much)
+{
+    {
+    #define bytes_used   *((int *) arena)
+    #define get_memory   (char *) arena + sizeof(int) + bytes_used
+    #define update_usage *((int *) arena) = bytes_used + how_much
+    }
+
+    void *result = get_memory;
+
+    update_usage;
+
+    return result;
+}
+</code>
+</pre>
+
+Can become:
+<pre>
+<code>
+void *arena_get(void *arena, int how_much)
+{
+    { ... }
+
+    void *result = get_memory;
+
+    update_usage;
+
+    return result;
+}
+</code>
+</pre>
+
+<p>In pretty much any editor.</p>
+
+<p>What if we improve some of the naming?</p>
+
+<pre>
+<code>
+void *memory_reserve(int size)
+{
+    #define reserved_memory calloc(1, size)
+
+    return reserved_memory;
+}
+
+void *memory_from(void *source, int how_much)
+{
+    {
+    #define bytes_used   *((int *) source)
+    #define get_memory   (char *) source + sizeof(int) + bytes_used
+    #define update_usage *((int *) source) = bytes_used + how_much
+    }
+
+    void *requested_memory = get_memory;
+
+    update_usage;
+
+    return requested_memory;
+}
+
+void memory_reset(void *source)
+{
+    #define reset *((int *) source) = 0
+
+    reset;
+}
+</code>
+</pre>
+
+<p>Which can later be used as:</p>
+<pre>
+<code>
+int main()
+{
+    void *tmp_memory = memory_reserve(1024);
+
+    char *text = memory_from(tmp_memory, 64);
+    strcpy(text, "lorem ipsum dolor...");
+
+    memory_reset(tmp_memory);
+    return 0;
+}
+</code>
+</pre>
+</section>
+
+<footer>Franco Montenegro - Thanks to magick.css for this lovely styling</footer>
+</main>
+<script type="text/javascript" src="line-number.js"></script>
+</body>
+</html>
